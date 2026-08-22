@@ -1,0 +1,58 @@
+<script src="/js/theme.js"></script>
+<aside class="sidebar">
+  <div class="brand">
+    <span class="brand-mark">✦</span> Feedback<span>Hub</span>
+    <span class="version-tag">v2.5 Pro</span>
+  </div>
+
+  <div class="sidebar-label"><%= user.role === 'admin' ? 'ADMIN PANEL' : 'STUDENT PORTAL' %></div>
+
+  <nav class="side-nav">
+    <% if (user.role === 'student') { %>
+      <a href="/student/dashboard?view=dashboard" class="<%= currentPath === '/student/dashboard' && (!locals.currentView || locals.currentView === 'dashboard') ? 'active' : '' %>">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="/student/feedback" class="<%= currentPath === '/student/feedback' ? 'active' : '' %>">
+        <span class="nav-icon">✍️</span> Give Feedback
+      </a>
+      <a href="/student/dashboard?view=teachers" class="<%= currentPath === '/student/dashboard' && locals.currentView === 'teachers' ? 'active' : '' %>">
+        <span class="nav-icon">👨‍🏫</span> Teacher Performance
+      </a>
+      <a href="/student/dashboard?view=subjects" class="<%= currentPath === '/student/dashboard' && locals.currentView === 'subjects' ? 'active' : '' %>">
+        <span class="nav-icon">📚</span> Subject & Batch Analytics
+      </a>
+      <a href="/student/dashboard?view=tracker" class="<%= currentPath === '/student/dashboard' && locals.currentView === 'tracker' ? 'active' : '' %>">
+        <span class="nav-icon">📍</span> Feedback Tracker
+      </a>
+    <% } else { %>
+      <a href="/admin/dashboard" class="<%= currentPath === '/admin/dashboard' ? 'active' : '' %>">
+        <span class="nav-icon">🛡️</span> Student Info & Feedback
+      </a>
+      <a href="/admin/students" class="<%= currentPath === '/admin/students' ? 'active' : '' %>">
+        <span class="nav-icon">👥</span> Student Directory
+      </a>
+      <a href="/admin/export/csv" class="">
+        <span class="nav-icon">📥</span> Export CSV
+      </a>
+      <a href="/admin/export/report" target="_blank" class="">
+        <span class="nav-icon">🖨️</span> PDF Report
+      </a>
+    <% } %>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <button type="button" class="theme-toggle" data-theme-toggle onclick="toggleTheme()">🌙 <span>Dark mode</span></button>
+    <div class="profile-chip">
+      <div class="avatar"><%= user.name.charAt(0).toUpperCase() %></div>
+      <div>
+        <strong><%= user.name %></strong>
+        <small><%= user.role %></small>
+      </div>
+    </div>
+    <form action="/logout" method="POST">
+      <button type="submit" class="logout-link">
+        ↪ <span>Sign out</span>
+      </button>
+    </form>
+  </div>
+</aside>

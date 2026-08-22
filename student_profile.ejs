@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Information | FeedbackHub</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">👤 STUDENT PROFILE</div>
+        <h1>Personal Information <span>✦</span></h1>
+        <p>Your registered student profile details and feedback statistics.</p>
+      </div>
+      <a href="/student/dashboard" class="btn btn-primary">📊 Go to Dashboard →</a>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Profile Card -->
+      <div class="panel text-center">
+        <div class="avatar-large" style="width:72px; height:72px; font-size:32px; margin: 0 auto 16px;">
+          <%= profile.name.charAt(0).toUpperCase() %>
+        </div>
+        <h2 style="font-size:20px; margin-bottom:4px;"><%= profile.name %></h2>
+        <p style="color:var(--text-muted); font-size:13px; margin-bottom:12px;"><%= profile.course || 'Student' %></p>
+        <span class="badge badge-accepted" style="font-size:12px;">● Verified Student Account</span>
+      </div>
+
+      <!-- Account Details Panel -->
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Account Details</h2>
+            <p>Information registered with FeedbackHub</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Full Name</small>
+            <strong style="display:block; font-size:15px; margin-top:2px;"><%= profile.name %></strong>
+          </div>
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Email Address</small>
+            <strong style="display:block; font-size:15px; margin-top:2px;"><%= profile.email %></strong>
+          </div>
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Roll Number</small>
+            <strong style="display:block; font-size:15px; margin-top:2px;"><%= profile.roll_number || 'N/A' %></strong>
+          </div>
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Course / Department</small>
+            <strong style="display:block; font-size:15px; margin-top:2px;"><%= profile.course || 'Not specified' %></strong>
+          </div>
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Total Feedbacks Submitted</small>
+            <strong style="display:block; font-size:15px; margin-top:2px; color:var(--primary);"><%= feedbackCount %> Submissions</strong>
+          </div>
+          <div style="padding:12px; background:#f8fafc; border-radius:8px;">
+            <small style="color:var(--text-muted); font-weight:700; font-size:11px; text-transform:uppercase;">Member Since</small>
+            <strong style="display:block; font-size:15px; margin-top:2px;"><%= new Date(profile.created_at).toLocaleDateString() %></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unified Auth Portal | FeedbackHub</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="/js/theme.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+  <div class="auth-wrapper">
+    <!-- Animated background glow blobs -->
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+
+    <div class="auth-card glass-card">
+      <button type="button" class="theme-toggle auth-theme-toggle" data-theme-toggle onclick="toggleTheme()">🌙 <span>Dark mode</span></button>
+      <div class="login-header">
+        <div class="login-logo">
+          <span class="logo-spark">✦</span> Feedback<span>Hub</span>
+        </div>
+        <p class="tagline">Unified Campus Feedback & Governance Portal</p>
+      </div>
+
+      <!-- Main Role Tabs -->
+      <div class="role-switcher">
+        <button type="button" class="role-btn <%= initialTab !== 'admin' ? 'active' : '' %>" id="tab-btn-student" onclick="switchRoleTab('student')">
+          <span class="role-icon">🎓</span> Student Portal
+        </button>
+        <button type="button" class="role-btn <%= initialTab === 'admin' ? 'active' : '' %>" id="tab-btn-admin" onclick="switchRoleTab('admin')">
+          <span class="role-icon">🛡️</span> Admin Console
+        </button>
+      </div>
+
+      <!-- Flash Messages -->
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <span class="alert-icon">⚠️</span> <%= error %>
+        </div>
+      <% } %>
+      <% if (success) { %>
+        <div class="alert alert-success">
+          <span class="alert-icon">✓</span> <%= success %>
+        </div>
+      <% } %>
+
+      <!-- STUDENT PORTAL SECTION -->
+      <div id="student-portal-section" style="<%= initialTab === 'admin' ? 'display: none;' : '' %>">
+        <!-- Student Sub-tabs: Sign In vs Sign Up -->
+        <div class="sub-tabs">
+          <button type="button" class="sub-tab-btn <%= initialTab !== 'register' ? 'active' : '' %>" id="subtab-btn-signin" onclick="switchStudentSubTab('signin')">
+            Sign In
+          </button>
+          <button type="button" class="sub-tab-btn <%= initialTab === 'register' ? 'active' : '' %>" id="subtab-btn-signup" onclick="switchStudentSubTab('signup')">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Student Sign In Form -->
+        <div id="student-signin-form" style="<%= initialTab === 'register' ? 'display: none;' : '' %>">
+          <form action="/login" method="POST" id="studentLoginForm">
+            <input type="hidden" name="role" value="student" />
+            <div class="form-group">
+              <label>Student Email Address</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="student_email" name="email" placeholder="rahul.sharma@college.com" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="student_password" name="password" placeholder="••••••••" required />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <span>Sign In to Student Portal</span> →
+            </button>
+          </form>
+
+          <!-- Quick Demo Student Login -->
+          <div class="demo-login-box">
+            <span class="demo-label">⚡ Quick Demo Access:</span>
+            <form action="/login" method="POST" style="margin:0;">
+              <input type="hidden" name="demo" value="student" />
+              <button type="submit" class="btn btn-demo">
+                🔑 Auto Sign-In as Demo Student
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Student Sign Up Form -->
+        <div id="student-signup-form" style="<%= initialTab !== 'register' ? 'display: none;' : '' %>">
+          <form action="/register" method="POST">
+            <div class="form-group">
+              <label>Full Name <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" name="name" placeholder="e.g. Rahul Sharma" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email Address <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" name="email" placeholder="student@college.com" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Roll Number</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">🆔</span>
+                  <input type="text" name="roll_number" placeholder="CS-2023-014" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Course / Dept</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">📚</span>
+                  <input type="text" name="course" placeholder="B.Tech CS" />
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Password <span class="req">*</span></label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" name="password" placeholder="Min 4 chars" required minlength="4" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Confirm Password <span class="req">*</span></label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">🔒</span>
+                  <input type="password" name="confirm_password" placeholder="Min 4 chars" required minlength="4" />
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              <span>Register Student Account</span> ✦
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ADMIN PORTAL SECTION -->
+      <div id="admin-portal-section" style="<%= initialTab !== 'admin' ? 'display: none;' : '' %>">
+        <div class="admin-badge-banner">
+          <span class="shield-badge">🛡️ Authorized Administrators Only</span>
+        </div>
+        <form action="/login" method="POST">
+          <input type="hidden" name="role" value="admin" />
+          <div class="form-group">
+            <label>Administrator Email</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">👔</span>
+              <input type="email" id="admin_email" name="email" placeholder="admin@college.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Master Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon">🔑</span>
+              <input type="password" id="admin_password" name="password" placeholder="••••••••" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-admin btn-block">
+            <span>Sign In to Admin Console</span> →
+          </button>
+        </form>
+
+        <!-- Quick Demo Admin Login -->
+        <div class="demo-login-box">
+          <span class="demo-label">⚡ Quick Demo Access:</span>
+          <form action="/login" method="POST" style="margin:0;">
+            <input type="hidden" name="demo" value="admin" />
+            <button type="submit" class="btn btn-demo btn-demo-admin">
+              🛡️ Auto Sign-In as System Admin
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="auth-card-footer">
+        <p>Protected by FeedbackHub Security Protocol v2.4</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchRoleTab(role) {
+      const studentBtn = document.getElementById('tab-btn-student');
+      const adminBtn = document.getElementById('tab-btn-admin');
+      const studentSec = document.getElementById('student-portal-section');
+      const adminSec = document.getElementById('admin-portal-section');
+
+      if (role === 'student') {
+        studentBtn.classList.add('active');
+        adminBtn.classList.remove('active');
+        studentSec.style.display = 'block';
+        adminSec.style.display = 'none';
+      } else {
+        adminBtn.classList.add('active');
+        studentBtn.classList.remove('active');
+        adminSec.style.display = 'block';
+        studentSec.style.display = 'none';
+      }
+    }
+
+    function switchStudentSubTab(mode) {
+      const signinBtn = document.getElementById('subtab-btn-signin');
+      const signupBtn = document.getElementById('subtab-btn-signup');
+      const signinForm = document.getElementById('student-signin-form');
+      const signupForm = document.getElementById('student-signup-form');
+
+      if (mode === 'signin') {
+        signinBtn.classList.add('active');
+        signupBtn.classList.remove('active');
+        signinForm.style.display = 'block';
+        signupForm.style.display = 'none';
+      } else {
+        signupBtn.classList.add('active');
+        signinBtn.classList.remove('active');
+        signupForm.style.display = 'block';
+        signinForm.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

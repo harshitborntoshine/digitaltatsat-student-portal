@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Give Feedback | FeedbackHub</title><link rel="stylesheet" href="/css/style.css" /><script src="/js/theme.js"></script></head>
+<body><%- include('partials/navbar') %><div class="container">
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %><% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <div class="page-heading"><div><div class="eyebrow">YOUR VOICE MATTERS</div><h1>Share your feedback <span>✦</span></h1><p>Help us make your campus experience better.</p></div></div>
+  <div class="feedback-layout"><div class="panel feedback-form-panel"><div class="panel-heading"><div><h2>Tell us what you think</h2><p>Your feedback will be reviewed by the admin team.</p></div><span class="feedback-badge">New response</span></div>
+    <form action="/student/feedback" method="POST">
+      <div class="form-row"><div class="form-group"><label>Subject</label><input type="text" name="subject" placeholder="e.g. Library Facilities" required /></div><div class="form-group"><label>Category</label><select name="category"><option value="General">General</option><option value="Academics">Academics</option><option value="Faculty">Faculty</option><option value="Infrastructure">Infrastructure</option><option value="Hostel">Hostel</option><option value="Administration">Administration</option><option value="Events">Events</option></select></div></div>
+      <div class="form-group"><label>How would you rate your experience?</label><select name="rating"><option value="5">★★★★★ Excellent</option><option value="4">★★★★☆ Good</option><option value="3">★★★☆☆ Average</option><option value="2">★★☆☆☆ Poor</option><option value="1">★☆☆☆☆ Very poor</option></select></div>
+      <div class="form-group"><label>Your feedback</label><textarea name="message" rows="8" placeholder="Write your feedback in detail..." required></textarea></div>
+      <button type="submit" class="btn btn-primary submit-feedback">Submit feedback <span>→</span></button>
+    </form>
+  </div><div class="feedback-side-card"><div class="side-sparkle">✦</div><h2>Your opinion shapes our campus</h2><p>Every response helps the administration understand what is working and where we can improve.</p><div class="feedback-steps"><span>01</span><div><strong>Be specific</strong><small>Tell us what happened and where.</small></div></div><div class="feedback-steps"><span>02</span><div><strong>Be constructive</strong><small>Suggestions help us take action.</small></div></div></div></div>
+</div></body></html>

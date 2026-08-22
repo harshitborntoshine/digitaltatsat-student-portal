@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Personal Info & Feedback | Admin Portal</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span> <%= success %>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <span class="alert-icon">⚠️</span> <%= error %>
+      </div>
+    <% } %>
+
+    <!-- Header Section -->
+    <div class="page-heading">
+      <div>
+        <div class="eyebrow">👥 CAMPUS DIRECTORY</div>
+        <h1>Student Personal Info & Feedback Hub <span>✦</span></h1>
+        <p>Inspect detailed student profile records, academic credentials, and individual feedback histories.</p>
+      </div>
+      <div class="directory-count-card">
+        <span class="count-num"><%= students.length %></span>
+        <span class="count-label">Registered Students</span>
+      </div>
+    </div>
+
+    <!-- Directory Summary KPI Tiles -->
+    <div class="student-info-grid">
+      <div class="info-tile">
+        <span class="info-icon purple">🎓</span>
+        <div>
+          <small>Total Students Registered</small>
+          <strong><%= students.length %></strong>
+        </div>
+      </div>
+      <div class="info-tile">
+        <span class="info-icon green">💬</span>
+        <div>
+          <small>Active Feedback Contributors</small>
+          <strong><%= students.filter(s => s.feedback_count > 0).length %></strong>
+        </div>
+      </div>
+      <div class="info-tile">
+        <span class="info-icon orange">📊</span>
+        <div>
+          <small>Total Submissions</small>
+          <strong><%= students.reduce((sum, s) => sum + s.feedback_count, 0) %></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Student Directory Panel -->
+    <div class="panel">
+      <div class="panel-heading flex-between flex-wrap gap-12">
+        <div>
+          <h2>Student Records Directory</h2>
+          <p>Click on any student to view their complete personal profile and feedback submissions</p>
+        </div>
+        <div class="search-wrap">
+          <input type="text" id="studentSearchInput" placeholder="🔍 Search name, email, roll no, course..." onkeyup="filterStudentDirectory()" class="student-search-bar" />
+        </div>
+      </div>
+
+      <% if (students.length === 0) { %>
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <h3>No students registered yet.</h3>
+        </div>
+      <% } else { %>
+        <div class="table-scroll">
+          <table class="students-table" id="studentsTable">
+            <thead>
+              <tr>
+                <th>Student Profile</th>
+                <th>Email Address</th>
+                <th>Roll Number</th>
+                <th>Course / Dept</th>
+                <th>Feedback Activity</th>
+                <th>Joined Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% students.forEach(s => { %>
+                <tr class="student-row" data-search="<%= (s.name + ' ' + s.email + ' ' + (s.roll_number || '') + ' ' + (s.course || '')).toLowerCase() %>">
+                  <td>
+                    <div class="table-student-cell">
+                      <span class="table-avatar"><%= s.name.charAt(0).toUpperCase() %></span>
+                      <div>
+                        <strong><%= s.name %></strong>
+                        <span class="role-micro-badge">Student</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="muted-cell"><%= s.email %></td>
+                  <td>
+                    <span class="roll-pill"><%= s.roll_number || 'N/A' %></span>
+                  </td>
+                  <td><%= s.course || 'Not specified' %></td>
+                  <td>
+                    <div class="activity-summary-pill">
+                      <span class="fb-count-badge" title="Total Feedback"><%= s.feedback_count %> Total</span>
+                      <% if (s.feedback_count > 0) { %>
+                        <span class="fb-sub-badge accepted" title="Accepted">✓ <%= s.accepted_count %></span>
+                        <span class="fb-sub-badge pending" title="Pending">⏳ <%= s.pending_count %></span>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td class="muted-cell"><%= new Date(s.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <button type="button" class="btn btn-primary btn-sm view-profile-btn" onclick="openStudentModal(<%= s.id %>)">
+                      👁 View Details & Feedback
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- STUDENT PERSONAL INFO & FEEDBACK MODAL OVERLAY -->
+  <div id="studentModal" class="modal-overlay" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-card glass-card">
+      <button type="button" class="modal-close-btn" onclick="closeStudentModal()">&times;</button>
+
+      <div id="modalLoading" class="modal-loading-spinner">
+        <div class="spinner"></div>
+        <p>Fetching student details & feedback history...</p>
+      </div>
+
+      <div id="modalContent" style="display: none;">
+        <!-- Modal Top Banner: Student Personal Details -->
+        <div class="modal-header-banner">
+          <div class="modal-avatar-lg" id="mAvatar">S</div>
+          <div class="modal-header-info">
+            <h2 id="mName">Student Name</h2>
+            <p id="mEmail" class="m-email">student@college.com</p>
+            <div class="modal-pills">
+              <span class="modal-pill" id="mRoll">Roll: CS-2023-014</span>
+              <span class="modal-pill" id="mCourse">B.Tech Computer Science</span>
+              <span class="modal-pill text-green" id="mDate">Joined: Jan 2024</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Summary KPI Cards inside modal -->
+        <div class="modal-stats-grid">
+          <div class="m-stat-card">
+            <small>Total Submitted</small>
+            <strong id="mTotal">0</strong>
+          </div>
+          <div class="m-stat-card text-green">
+            <small>Accepted</small>
+            <strong id="mAccepted">0</strong>
+          </div>
+          <div class="m-stat-card text-amber">
+            <small>Pending Review</small>
+            <strong id="mPending">0</strong>
+          </div>
+          <div class="m-stat-card text-red">
+            <small>Rejected</small>
+            <strong id="mRejected">0</strong>
+          </div>
+          <div class="m-stat-card text-purple">
+            <small>Average Rating</small>
+            <strong id="mAvgRating">0.0 ★</strong>
+          </div>
+        </div>
+
+        <!-- Student Feedback History Section -->
+        <div class="modal-feedback-section">
+          <h3>💬 Feedback History Submitted by <span id="mNameShort">Student</span></h3>
+          
+          <div id="mFeedbackContainer" class="modal-feedback-list">
+            <!-- Dynamic feedback cards injected here via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function filterStudentDirectory() {
+      const query = document.getElementById('studentSearchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('.student-row');
+      rows.forEach(row => {
+        const text = row.getAttribute('data-search');
+        if (text.includes(query)) {
+          row.style.display = 'table-row';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Modal Control Functions
+    function openStudentModal(studentId) {
+      const modal = document.getElementById('studentModal');
+      const loading = document.getElementById('modalLoading');
+      const content = document.getElementById('modalContent');
+
+      modal.classList.add('active');
+      loading.style.display = 'block';
+      content.style.display = 'none';
+
+      fetch(`/admin/students/${studentId}/json`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error);
+            closeStudentModal();
+            return;
+          }
+
+          const student = data.student;
+          const stats = data.stats;
+          const feedbacks = data.feedbacks;
+
+          document.getElementById('mAvatar').textContent = student.name.charAt(0).toUpperCase();
+          document.getElementById('mName').textContent = student.name;
+          document.getElementById('mNameShort').textContent = student.name.split(' ')[0];
+          document.getElementById('mEmail').textContent = student.email;
+          document.getElementById('mRoll').textContent = `Roll No: ${student.roll_number || 'N/A'}`;
+          document.getElementById('mCourse').textContent = student.course || 'Course Not Specified';
+          document.getElementById('mDate').textContent = `Joined: ${new Date(student.created_at).toLocaleDateString()}`;
+
+          document.getElementById('mTotal').textContent = stats.total;
+          document.getElementById('mAccepted').textContent = stats.accepted;
+          document.getElementById('mPending').textContent = stats.pending;
+          document.getElementById('mRejected').textContent = stats.rejected;
+          document.getElementById('mAvgRating').textContent = `${stats.avgRating} ★`;
+
+          const fbContainer = document.getElementById('mFeedbackContainer');
+          fbContainer.innerHTML = '';
+
+          if (feedbacks.length === 0) {
+            fbContainer.innerHTML = `
+              <div class="empty-state">
+                <p>This student has not submitted any feedback yet.</p>
+              </div>
+            `;
+          } else {
+            feedbacks.forEach(fb => {
+              const starsHtml = '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating);
+              const card = document.createElement('div');
+              card.className = 'feedback-card m-fb-card';
+              card.innerHTML = `
+                <div class="fc-top">
+                  <div>
+                    <h4>${escapeHtml(fb.subject)}</h4>
+                    <div class="meta">
+                      <span class="badge badge-category">${escapeHtml(fb.category)}</span>
+                      <span class="stars">${starsHtml}</span>
+                      <span>📅 ${new Date(fb.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <span class="badge badge-${fb.status.toLowerCase()}">${fb.status}</span>
+                </div>
+
+                <p class="message">"${escapeHtml(fb.message)}"</p>
+
+                <form action="/admin/feedback/${fb.id}/status?_method=PUT" method="POST" class="admin-review-form">
+                  <div class="remark-input-group">
+                    <span class="remark-label">Admin Remark:</span>
+                    <input type="text" name="admin_remark" placeholder="Write remark for student..." value="${escapeHtml(fb.admin_remark || '')}" class="remark-input" />
+                  </div>
+                  <div class="action-btn-group">
+                    <button type="submit" name="status" value="Accepted" class="btn btn-success btn-sm">✔ Accept</button>
+                    <button type="submit" name="status" value="Rejected" class="btn btn-danger btn-sm">✘ Reject</button>
+                    <button type="submit" name="status" value="Pending" class="btn btn-outline btn-sm">↺ Pending</button>
+                  </div>
+                </form>
+              `;
+              fbContainer.appendChild(card);
+            });
+          }
+
+          loading.style.display = 'none';
+          content.style.display = 'block';
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Failed to load student details.');
+          closeStudentModal();
+        });
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentModal').classList.remove('active');
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'studentModal') {
+        closeStudentModal();
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Portal & Analytics Dashboard | FeedbackHub</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js CDN for Interactive Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <%- include('partials/navbar') %>
+
+  <div class="container">
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <span class="alert-icon">✓</span> <%= success %>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <span class="alert-icon">⚠️</span> <%= error %>
+      </div>
+    <% } %>
+
+    <!-- Student Welcome Hero -->
+    <div class="student-welcome-card glass-panel">
+      <div class="welcome-text">
+        <div class="eyebrow-badge">🎓 STUDENT PORTAL & ANALYTICS DASHBOARD</div>
+        <h1>Welcome back, <%= user.name %> <span class="sparkle">✦</span></h1>
+        <p>Submit feedback, explore teacher & subject analytics, and track your feedback status in real-time.</p>
+      </div>
+      <div class="student-profile-badge">
+        <div class="avatar-large"><%= user.name.charAt(0).toUpperCase() %></div>
+        <div class="badge-details">
+          <strong><%= user.name %></strong>
+          <small><%= studentProfile.course || 'Enrolled Student' %></small>
+          <span class="roll-pill">ID: <%= studentProfile.roll_number || 'STU-2024' %></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRM Navigation Tabs for Student Portal -->
+    <div class="crm-tabs">
+      <a href="/student/dashboard?view=dashboard" class="crm-tab-btn <%= currentView === 'dashboard' ? 'active' : '' %>">
+        📊 Dashboard & Feedback Form
+      </a>
+      <a href="/student/dashboard?view=teachers" class="crm-tab-btn <%= currentView === 'teachers' ? 'active' : '' %>">
+        👨‍🏫 Teacher Performance
+      </a>
+      <a href="/student/dashboard?view=subjects" class="crm-tab-btn <%= currentView === 'subjects' ? 'active' : '' %>">
+        📚 Subject & Batch Analytics
+      </a>
+      <a href="/student/dashboard?view=tracker" class="crm-tab-btn <%= currentView === 'tracker' ? 'active' : '' %>">
+        📍 My Feedback Tracker
+      </a>
+    </div>
+
+    <!-- Stats KPI Cards Grid (always visible) -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon-wrap">📊</div>
+        <div class="stat-info">
+          <div class="label">Total Submitted</div>
+          <div class="value"><%= stats.total %></div>
+        </div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-icon-wrap">⏳</div>
+        <div class="stat-info">
+          <div class="label">Pending Review</div>
+          <div class="value"><%= stats.pending %></div>
+        </div>
+      </div>
+      <div class="stat-card accepted">
+        <div class="stat-icon-wrap">✅</div>
+        <div class="stat-info">
+          <div class="label">Approved / Accepted</div>
+          <div class="value"><%= stats.accepted %></div>
+        </div>
+      </div>
+      <div class="stat-card rejected">
+        <div class="stat-icon-wrap">❌</div>
+        <div class="stat-info">
+          <div class="label">Rejected</div>
+          <div class="value"><%= stats.rejected %></div>
+        </div>
+      </div>
+      <div class="stat-card avg-rating">
+        <div class="stat-icon-wrap">⭐</div>
+        <div class="stat-info">
+          <div class="label">Avg Given Rating</div>
+          <div class="value"><%= stats.avgRating %><small>/5</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 1: DASHBOARD ================= -->
+    <% if (currentView === 'dashboard') { %>
+
+      <!-- My Feedback Analytics Charts -->
+      <div class="section-title">
+        <h2>📈 My Feedback Analytics & Insights</h2>
+        <span class="live-dot">● Interactive Visual Metrics</span>
+      </div>
+
+      <div class="analytics-grid student-analytics-grid">
+        <!-- Chart 1: Status Breakdown Doughnut Chart -->
+        <div class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Submission Status</h2>
+              <p>Approved vs Pending vs Rejected</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="studentStatusChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Rating Distribution Bar Chart -->
+        <div class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Rating Distribution</h2>
+              <p>1 to 5 Star Scores Given</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="studentRatingChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Category Breakdown -->
+        <div class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Category Breakdown</h2>
+              <p>Topics submitted</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="studentCategoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <% if (false) { %>
+      <!-- Feedback Submission Form -->
+      <div class="dashboard-grid">
+        <div class="panel feedback-form-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>✍️ Submit Student Feedback</h2>
+              <p>Rate your teacher, subject, & batch experience</p>
+            </div>
+          </div>
+
+          <form action="/student/feedback" method="POST" id="feedbackForm">
+            <!-- 1-5 Rating Selection -->
+            <div class="form-group">
+              <label>1 to 5 Star Rating <span class="req">*</span></label>
+              <div class="star-rating-select">
+                <input type="hidden" name="rating" id="ratingInput" value="5" />
+                <div class="stars-interactive" id="starPicker">
+                  <span data-val="1" class="star active">★</span>
+                  <span data-val="2" class="star active">★</span>
+                  <span data-val="3" class="star active">★</span>
+                  <span data-val="4" class="star active">★</span>
+                  <span data-val="5" class="star active">★</span>
+                </div>
+                <span class="rating-label-text" id="ratingLabel">5 Stars - Excellent</span>
+              </div>
+            </div>
+
+            <!-- Subject Selection -->
+            <div class="form-group">
+              <label>Subject / Course <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">📚</span>
+                <input type="text" name="subject" list="subjectList" placeholder="Select or type Subject (e.g. Data Structures)" required />
+                <datalist id="subjectList">
+                  <option value="Data Structures & Algorithms">
+                  <option value="Operating Systems">
+                  <option value="Machine Learning & Python">
+                  <option value="Database Management Systems">
+                  <option value="Computer Networks">
+                  <option value="Circuit Theory">
+                  <option value="Thermodynamics">
+                  <option value="Business Analytics & Statistics">
+                </datalist>
+              </div>
+            </div>
+
+            <!-- Teacher & Batch Selection Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Teacher / Instructor</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">👨‍🏫</span>
+                  <input type="text" name="teacher" list="teacherList" placeholder="Teacher Name (e.g. Dr. A. K. Sharma)" />
+                  <datalist id="teacherList">
+                    <option value="Dr. A. K. Sharma">
+                    <option value="Prof. Sunita Rao">
+                    <option value="Dr. Rajesh Verma">
+                    <option value="Prof. Meera Kapoor">
+                    <option value="Dr. Vikram Malhotra">
+                    <option value="Prof. R. C. Gupta">
+                    <option value="Dr. Neha Kulkarni">
+                  </datalist>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Batch / Division</label>
+                <div class="input-icon-wrap">
+                  <span class="input-icon">👥</span>
+                  <input type="text" name="batch" list="batchList" placeholder="Batch (e.g. CS-2023-A)" />
+                  <datalist id="batchList">
+                    <option value="CS-2023-A">
+                    <option value="CS-2023-B">
+                    <option value="EE-2023-B">
+                    <option value="ME-2023-A">
+                    <option value="MBA-2024-B">
+                    <option value="DS-2023-A">
+                  </datalist>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="form-group">
+              <label>Feedback Category</label>
+              <select name="category" class="custom-select">
+                <option value="Academics" selected>📖 Academics & Curriculum</option>
+                <option value="Faculty">👨‍🏫 Faculty & Teaching Quality</option>
+                <option value="Infrastructure">🏫 Campus & Lab Infrastructure</option>
+                <option value="Hostel">🏠 Hostel & Accommodation</option>
+                <option value="Canteen">🍲 Canteen & Food Facilities</option>
+                <option value="Library">📚 Library & Digital Books</option>
+                <option value="Sports">⚽ Sports & Extra-Curricular</option>
+                <option value="Administration">💼 Administration & Exams</option>
+              </select>
+            </div>
+
+            <!-- Detailed Comments -->
+            <div class="form-group">
+              <label>Detailed Comments & Feedback <span class="req">*</span></label>
+              <textarea name="message" rows="4" placeholder="Write your comments, observations, or suggestions in detail..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary submit-btn">
+              <span>Submit Feedback</span> 🚀
+            </button>
+          </form>
+        </div>
+
+        <% } %>
+      <div class="dashboard-cta-row">
+        <div>
+          <strong>Have something to share?</strong>
+          <span>Submit a new response from the dedicated feedback workspace.</span>
+        </div>
+        <a href="/student/feedback" class="btn btn-primary">Give Feedback →</a>
+      </div>
+
+      <!-- Quick Recent Feedback Summary -->
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>🕐 Recent Submissions</h2>
+              <p>Your latest feedback at a glance</p>
+            </div>
+          </div>
+          <% if (feedbacks.length === 0) { %>
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <h3>No feedback submitted yet</h3>
+              <p>Open the Give Feedback page to submit your first response.</p>
+            </div>
+          <% } else { %>
+            <div class="feedback-list-container">
+              <% feedbacks.slice(0, 5).forEach(fb => { %>
+                <div class="feedback-card fb-item">
+                  <div class="fc-top">
+                    <div>
+                      <h3 class="fb-title">📖 <%= fb.subject %></h3>
+                      <div class="meta">
+                        <span class="meta-tag">👨‍🏫 <%= fb.teacher || 'General Faculty' %></span>
+                        <span class="badge badge-category"><%= fb.category %></span>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <span class="badge badge-<%= fb.status.toLowerCase() %>"><%= fb.status %></span>
+                      <div class="stars-display"><%= '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating) %></div>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+              <% if (feedbacks.length > 5) { %>
+                <a href="/student/dashboard?view=tracker" class="btn btn-outline btn-block" style="margin-top:12px;">
+                  📍 View All <%= feedbacks.length %> Feedbacks in Tracker →
+                </a>
+              <% } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- ================= VIEW 2: TEACHER PERFORMANCE DASHBOARD ================= -->
+    <% if (currentView === 'teachers') { %>
+      <div class="section-title">
+        <h2>👨‍🏫 Teacher Performance Dashboard & Ratings</h2>
+        <span class="live-dot">● Faculty Evaluation Analytics</span>
+      </div>
+
+      <!-- Top Rated Teachers Leaderboard Grid -->
+      <% if (teacherStats.length > 0) { %>
+        <div class="teacher-leaderboard-grid">
+          <% teacherStats.slice(0, 3).forEach((t, idx) => { %>
+            <div class="teacher-card rank-<%= idx + 1 %>">
+              <div class="rank-badge">#<%= idx + 1 %> Top Rated</div>
+              <div class="teacher-avatar"><%= t.teacher.split(' ').pop().charAt(0) %></div>
+              <h3><%= t.teacher %></h3>
+              <div class="t-rating-score"><%= t.avg_rating %> <small>/ 5 ★</small></div>
+              <div class="t-sub-text"><%= t.total_feedback %> Student Reviews</div>
+              <div class="t-pills">
+                <span class="t-pill green">✓ <%= t.accepted_count %> Approved</span>
+                <span class="t-pill amber">⏳ <%= t.pending_count %> Pending</span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <!-- Teacher Rating Comparison Chart -->
+      <div class="panel chart-panel" style="margin-bottom:28px;">
+        <div class="panel-heading">
+          <div>
+            <h2>Teacher Average Ratings Comparison</h2>
+            <p>Average rating score out of 5 stars per faculty member</p>
+          </div>
+        </div>
+        <div class="chart-box" style="height:260px;">
+          <canvas id="teacherRatingChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Detailed Teacher Performance Table -->
+      <div class="panel">
+        <div class="panel-heading flex-between">
+          <div>
+            <h2>Faculty Performance Breakdown Table</h2>
+            <p>Aggregated rating metrics and student review counts</p>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="students-table">
+            <thead>
+              <tr>
+                <th>Faculty Member</th>
+                <th>Avg Rating</th>
+                <th>Total Reviews</th>
+                <th>Approved</th>
+                <th>Pending</th>
+                <th>Rejected</th>
+                <th>Satisfaction Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% teacherStats.forEach(t => { %>
+                <tr>
+                  <td>
+                    <div class="table-student-cell">
+                      <span class="table-avatar"><%= t.teacher.charAt(0).toUpperCase() %></span>
+                      <strong><%= t.teacher %></strong>
+                    </div>
+                  </td>
+                  <td>
+                    <strong style="color:#7c3aed; font-size:15px;"><%= t.avg_rating %> ★</strong>
+                  </td>
+                  <td><strong><%= t.total_feedback %></strong> reviews</td>
+                  <td><span class="badge badge-accepted"><%= t.accepted_count %></span></td>
+                  <td><span class="badge badge-pending"><%= t.pending_count %></span></td>
+                  <td><span class="badge badge-rejected"><%= t.rejected_count %></span></td>
+                  <td>
+                    <div class="rating-track" style="width:120px; display:inline-block; vertical-align:middle; margin-right:6px;">
+                      <i style="width:<%= (t.avg_rating / 5 * 100) %>%; background:#7c3aed;"></i>
+                    </div>
+                    <small><strong><%= Math.round(t.avg_rating / 5 * 100) %>%</strong></small>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- ================= VIEW 3: SUBJECT & BATCH ANALYTICS ================= -->
+    <% if (currentView === 'subjects') { %>
+      <div class="section-title">
+        <h2>📚 Subject & Batch Satisfaction Analytics</h2>
+        <span class="live-dot">● Academic Performance Insights</span>
+      </div>
+
+      <div class="analytics-grid" style="grid-template-columns:1fr 1fr; margin-bottom:28px;">
+        <!-- Subject Chart -->
+        <div class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Subject Feedback Volume</h2>
+              <p>Submissions count by Subject</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="subjectVolumeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Batch Chart -->
+        <div class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Batch Average Ratings</h2>
+              <p>Satisfaction score per Batch</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="batchRatingChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject Performance Table -->
+      <div class="panel" style="margin-bottom:28px;">
+        <div class="panel-heading">
+          <div>
+            <h2>Subject Analytics Table</h2>
+            <p>Detailed performance score by subject</p>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="students-table">
+            <thead>
+              <tr>
+                <th>Subject Name</th>
+                <th>Total Feedback</th>
+                <th>Average Rating</th>
+                <th>Approved Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% subjectStats.forEach(s => { %>
+                <tr>
+                  <td><strong>📖 <%= s.subject %></strong></td>
+                  <td><%= s.total_feedback %> submissions</td>
+                  <td><strong style="color:#2563eb;"><%= s.avg_rating %> ★</strong></td>
+                  <td><span class="badge badge-accepted"><%= s.accepted_count %> Approved</span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Batch Performance Table -->
+      <div class="panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Batch Analytics Table</h2>
+            <p>Satisfaction and submission counts by Batch</p>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="students-table">
+            <thead>
+              <tr>
+                <th>Batch Name</th>
+                <th>Total Submissions</th>
+                <th>Average Rating</th>
+                <th>Approved Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% batchStats.forEach(b => { %>
+                <tr>
+                  <td><strong>👥 <%= b.batch %></strong></td>
+                  <td><%= b.total_feedback %> submissions</td>
+                  <td><strong style="color:#059669;"><%= b.avg_rating %> ★</strong></td>
+                  <td><span class="badge badge-accepted"><%= b.accepted_count %> Approved</span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- ================= VIEW 4: FEEDBACK TRACKER & HISTORY ================= -->
+    <% if (currentView === 'tracker') { %>
+      <div class="section-title">
+        <h2>📍 Live Feedback Status Tracker & Full History</h2>
+        <span class="live-dot">● Track Submitted ➔ Under Review ➔ Approved/Rejected</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-heading flex-between flex-wrap gap-12">
+          <div>
+            <h2>📜 Complete Feedback History</h2>
+            <p>All your submissions with live status tracking</p>
+          </div>
+          <div class="search-wrap">
+            <input type="text" id="historySearch" placeholder="🔍 Search feedback, teacher, subject..." onkeyup="filterHistory()" />
+          </div>
+        </div>
+
+        <% if (feedbacks.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>No feedback submitted yet</h3>
+            <p>Go to the <a href="/student/dashboard?view=dashboard">Dashboard tab</a> to submit your first feedback!</p>
+          </div>
+        <% } else { %>
+          <div class="feedback-list-container" id="feedbackList">
+            <% feedbacks.forEach(fb => { %>
+              <div class="feedback-card fb-item" data-search="<%= (fb.subject + ' ' + (fb.teacher || '') + ' ' + (fb.batch || '') + ' ' + fb.category).toLowerCase() %>">
+                
+                <!-- Card Header -->
+                <div class="fc-top">
+                  <div>
+                    <h3 class="fb-title">📖 <%= fb.subject %></h3>
+                    <div class="meta">
+                      <span class="meta-tag">👨‍🏫 <%= fb.teacher || 'General Faculty' %></span>
+                      <span class="meta-tag">👥 <%= fb.batch || 'Batch 2023-2027' %></span>
+                      <span class="badge badge-category"><%= fb.category %></span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="stars-display"><%= '★'.repeat(fb.rating) + '☆'.repeat(5 - fb.rating) %></span>
+                    <div class="meta-date" style="font-size:11px; margin-top:2px;">📅 <%= new Date(fb.created_at).toLocaleDateString() %></div>
+                  </div>
+                </div>
+
+                <!-- Detailed Comments -->
+                <div class="feedback-body-text">
+                  <strong>Student Comments:</strong>
+                  <p>"<%= fb.message %>"</p>
+                </div>
+
+                <!-- LIVE FEEDBACK TRACKER TIMELINE STEPPER -->
+                <div class="tracker-stepper">
+                  <div class="tracker-title">📌 Live Feedback Status Tracker:</div>
+                  
+                  <div class="stepper-steps">
+                    <!-- Step 1: Submitted -->
+                    <div class="step step-done">
+                      <div class="step-icon">✓</div>
+                      <div class="step-label">
+                        <strong>Submitted</strong>
+                        <small><%= new Date(fb.created_at).toLocaleDateString() %></small>
+                      </div>
+                    </div>
+
+                    <div class="step-line <%= fb.status !== 'Pending' ? 'line-done' : '' %>"></div>
+
+                    <!-- Step 2: Under Admin Review -->
+                    <div class="step <%= fb.status === 'Pending' ? 'step-active' : 'step-done' %>">
+                      <div class="step-icon"><%= fb.status === 'Pending' ? '⏳' : '✓' %></div>
+                      <div class="step-label">
+                        <strong>Under Admin Review</strong>
+                        <small><%= fb.status === 'Pending' ? 'In Progress...' : 'Completed' %></small>
+                      </div>
+                    </div>
+
+                    <div class="step-line <%= fb.status !== 'Pending' ? 'line-done' : '' %>"></div>
+
+                    <!-- Step 3: Decision (Approved / Rejected) -->
+                    <div class="step <%= fb.status === 'Accepted' ? 'step-accepted' : (fb.status === 'Rejected' ? 'step-rejected' : 'step-pending') %>">
+                      <div class="step-icon">
+                        <% if (fb.status === 'Accepted') { %> ✅ <% } else if (fb.status === 'Rejected') { %> ❌ <% } else { %> ⏱️ <% } %>
+                      </div>
+                      <div class="step-label">
+                        <strong>Status: <%= fb.status === 'Accepted' ? 'APPROVED' : (fb.status === 'Rejected' ? 'REJECTED' : 'PENDING') %></strong>
+                        <small><%= fb.status === 'Accepted' ? 'Feedback Actioned' : (fb.status === 'Rejected' ? 'Not Actioned' : 'Awaiting Review') %></small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Official Admin Remark Box -->
+                <% if (fb.admin_remark) { %>
+                  <div class="remark-box remark-<%= fb.status.toLowerCase() %>" style="margin-top:14px;">
+                    <strong>💬 Admin Official Response & Remark:</strong>
+                    <p><%= fb.admin_remark %></p>
+                  </div>
+                <% } %>
+
+                <% if (fb.status === 'Pending') { %>
+                  <div class="fc-actions" style="margin-top:12px;">
+                    <form action="/student/feedback/<%= fb.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this pending feedback submission?');">
+                      <button type="submit" class="btn btn-outline-danger btn-xs">🗑 Delete Submission</button>
+                    </form>
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+  </div>
+
+  <script>
+    // Interactive Star Picker
+    const starPicker = document.getElementById('starPicker');
+    const ratingInput = document.getElementById('ratingInput');
+    const ratingLabel = document.getElementById('ratingLabel');
+    const labels = {
+      1: '1 Star - Very Poor',
+      2: '2 Stars - Poor',
+      3: '3 Stars - Average',
+      4: '4 Stars - Good',
+      5: '5 Stars - Excellent'
+    };
+
+    if (starPicker) {
+      const stars = starPicker.querySelectorAll('.star');
+      stars.forEach(star => {
+        star.addEventListener('click', function() {
+          const val = parseInt(this.getAttribute('data-val'));
+          ratingInput.value = val;
+          ratingLabel.textContent = labels[val];
+          stars.forEach((s, idx) => {
+            if (idx < val) {
+              s.classList.add('active');
+            } else {
+              s.classList.remove('active');
+            }
+          });
+        });
+      });
+    }
+
+    // Client-side Search Filter
+    function filterHistory() {
+      const query = document.getElementById('historySearch').value.toLowerCase();
+      const items = document.querySelectorAll('.fb-item');
+      items.forEach(item => {
+        const text = item.getAttribute('data-search') || item.textContent.toLowerCase();
+        if (text.includes(query)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // Render Charts with Chart.js
+    document.addEventListener('DOMContentLoaded', function() {
+
+      <% if (currentView === 'dashboard') { %>
+        const pendingCount = <%= stats.pending %>;
+        const acceptedCount = <%= stats.accepted %>;
+        const rejectedCount = <%= stats.rejected %>;
+
+        // Status Doughnut Chart
+        const ctxStatus = document.getElementById('studentStatusChart');
+        if (ctxStatus) {
+          new Chart(ctxStatus, {
+            type: 'doughnut',
+            data: {
+              labels: ['Approved', 'Pending', 'Rejected'],
+              datasets: [{
+                data: [acceptedCount, pendingCount, rejectedCount],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 12 } } }
+              },
+              cutout: '70%'
+            }
+          });
+        }
+
+        // Rating Bar Chart
+        const ratingData = <%- JSON.stringify(ratingStats) %>;
+        const ctxRating = document.getElementById('studentRatingChart');
+        if (ctxRating) {
+          new Chart(ctxRating, {
+            type: 'bar',
+            data: {
+              labels: ratingData.map(r => r.rating + ' ★'),
+              datasets: [{
+                label: 'Feedbacks Given',
+                data: ratingData.map(r => r.value),
+                backgroundColor: '#8b5cf6',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+              }
+            }
+          });
+        }
+
+        // Category Bar Chart
+        const categoryData = <%- JSON.stringify(categoryStats) %>;
+        const ctxCat = document.getElementById('studentCategoryChart');
+        if (ctxCat) {
+          new Chart(ctxCat, {
+            type: 'bar',
+            data: {
+              labels: categoryData.length ? categoryData.map(c => c.label) : ['General'],
+              datasets: [{
+                label: 'Count',
+                data: categoryData.length ? categoryData.map(c => c.value) : [0],
+                backgroundColor: '#3b82f6',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { beginAtZero: true, ticks: { stepSize: 1 } }
+              }
+            }
+          });
+        }
+      <% } %>
+
+      <% if (currentView === 'teachers') { %>
+        const teacherData = <%- JSON.stringify(teacherStats) %>;
+        const ctxTeacher = document.getElementById('teacherRatingChart');
+        if (ctxTeacher) {
+          new Chart(ctxTeacher, {
+            type: 'bar',
+            data: {
+              labels: teacherData.map(t => t.teacher),
+              datasets: [{
+                label: 'Average Rating (out of 5)',
+                data: teacherData.map(t => t.avg_rating),
+                backgroundColor: '#7c3aed',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } }
+            }
+          });
+        }
+      <% } %>
+
+      <% if (currentView === 'subjects') { %>
+        const subjectData = <%- JSON.stringify(subjectStats) %>;
+        const ctxSub = document.getElementById('subjectVolumeChart');
+        if (ctxSub) {
+          new Chart(ctxSub, {
+            type: 'bar',
+            data: {
+              labels: subjectData.map(s => s.subject),
+              datasets: [{
+                label: 'Feedback Count',
+                data: subjectData.map(s => s.total_feedback),
+                backgroundColor: '#2563eb',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+          });
+        }
+
+        const batchData = <%- JSON.stringify(batchStats) %>;
+        const ctxBatch = document.getElementById('batchRatingChart');
+        if (ctxBatch) {
+          new Chart(ctxBatch, {
+            type: 'bar',
+            data: {
+              labels: batchData.map(b => b.batch),
+              datasets: [{
+                label: 'Avg Rating',
+                data: batchData.map(b => b.avg_rating),
+                backgroundColor: '#059669',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } }
+            }
+          });
+        }
+      <% } %>
+
+    });
+  </script>
+</body>
+</html>
